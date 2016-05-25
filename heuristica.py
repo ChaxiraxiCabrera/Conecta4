@@ -6,11 +6,11 @@ from utils import *
 
 def memoize(f):
     memo = {}
-    def helper(x):
+    def helper(state):
         #key = (x.utility, x.to_move, frozenset(x.board.items()))
-        key = tuple(x.board.items())
+        key = tuple(state.board.items())
         if key not in memo:
-            memo[key] = f(x)
+            memo[key] = f(state)
         return memo[key]
 
     return helper
@@ -20,7 +20,6 @@ def legal_moves(state):
     "Legal moves are any square not yet taken."
     return [(x, y) for (x, y) in state.moves
             if y == 1 or (x, y - 1) in state.board]
-
 
 def k_in_row(state, player, (delta_x, delta_y)):
     board = state.board
@@ -36,7 +35,7 @@ def k_in_row(state, player, (delta_x, delta_y)):
             # Si la posicion nos pertenece
             if board.get(pos) == player:
                 # Si la ficha anterior es nuestra
-                if (pos[0] - delta_x, pos[1] - delta_y) == player:
+                if board.get(pos[0] - delta_x, pos[1] - delta_y) == player:
                     h1 += weights_c[pos[0] - 1] * weights_f[pos[1] - 1] * 2
                 # Si la ficha anterior es un hueco
                 else:
@@ -44,7 +43,7 @@ def k_in_row(state, player, (delta_x, delta_y)):
             # Si la posicion es un hueco
             elif pos in state.moves:
                 # Si la ficha anterior es nuestra
-                if (pos[0] - delta_x, pos[1] - delta_y) == player:
+                if board.get(pos[0] - delta_x, pos[1] - delta_y) == player:
                     h1 += weights_c[pos[0] - 1] * weights_f[pos[1] - 1]
                 # Si la ficha anterior es un hueco
                 else:
@@ -63,7 +62,7 @@ def k_in_row(state, player, (delta_x, delta_y)):
             # Si la posicion nos pertenece
             if board.get(pos) == player:
                 # Si la ficha anterior es nuestra
-                if (pos[0] + delta_x, pos[1] + delta_y) == player:
+                if board.get(pos[0] + delta_x, pos[1] + delta_y) == player:
                     h2 += weights_c[pos[0] - 1] * weights_f[pos[1] - 1] * 2
                 # Si la ficha anterior es un hueco
                 else:
@@ -71,7 +70,7 @@ def k_in_row(state, player, (delta_x, delta_y)):
             # Si la posicion es un hueco
             elif pos in state.moves:
                 # Si la ficha anterior es nuestra
-                if (pos[0] + delta_x, pos[1] + delta_y) == player:
+                if board.get(pos[0] + delta_x, pos[1] + delta_y) == player:
                     h2 += (weights_c[pos[0] - 1] * weights_f[pos[1] - 1])
                 # Si la ficha anterior es un hueco
                 else:
