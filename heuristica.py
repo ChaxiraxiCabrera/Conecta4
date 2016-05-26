@@ -7,7 +7,7 @@ from utils import *
 def memoize(f):
     memo = {}
     def helper(state):
-        #key = (x.utility, x.to_move, frozenset(x.board.items()))
+        #key = (state.utility, state.to_move, frozenset(state.board.items()))
         key = tuple(state.board.items())
         if key not in memo:
             memo[key] = f(state)
@@ -23,14 +23,16 @@ def legal_moves(state):
 
 def k_in_row(state, player, (delta_x, delta_y)):
     board = state.board
-    weights_c = [1, 3, 9, 27, 9, 3, 1]
-    weights_f = [729, 243, 81, 27, 9, 3, 1]
+    # Con los pesos favorecemos jugar abajo y en el centro del tablero
+    weights_c = [4, 8, 16, 32, 16, 8, 4]
+    weights_f = [32, 16, 8, 4, 2, 1]
+    htotal = 0
     h1 = 0
     h2 = 0
     for move in legal_moves(state):
         pos = (move[0] + delta_x, move[1] + delta_y)
         good = 0
-        # Mientras sea una posicion legal calculamos su valor para un maximo de 3 posiciones
+        # Mientras sea una posicion legal calculamos su valor para un maximo de 3 desplazamientos
         while (pos in state.moves or board.get(pos) == player) and good < 3:
             # Si la posicion nos pertenece
             if board.get(pos) == player:
@@ -51,13 +53,14 @@ def k_in_row(state, player, (delta_x, delta_y)):
             # Actualizamos las posiciones
             pos = (pos[0] + delta_x, pos[1] + delta_y)
             good += 1
-        # Si es un potencial 4 en raya aumentamos su valor
+        # Si es un potencial 4 en raya sumamos su valor heuristico
         if good == 3:
-            h1 *= 2
+            htotal += h1
         # Reiniciamos a la posicion original
         pos = (move[0] + delta_x, move[1] + delta_y)
         good = 0
-        # Mientras sea una posicion legal calculamos su valor para un maximo de 3 posiciones
+        h1 = 0
+        # Mientras sea una posicion legal calculamos su valor para un maximo de 3 desplazamientos
         while (pos in state.moves or board.get(pos) == player) and good < 3:
             # Si la posicion nos pertenece
             if board.get(pos) == player:
@@ -78,10 +81,11 @@ def k_in_row(state, player, (delta_x, delta_y)):
             # Actualizamos las posiciones
             pos = (pos[0] - delta_x, pos[1] - delta_y)
             good += 1
-        # Si es un potencial 4 en raya aumentamos su valor
+        # Si es un potencial 4 en raya sumamos su valor heuristico
         if good == 3:
-            h2 *= 2
-    return h1 + h2
+            htotal += h2
+        h2 = 0
+    return htotal
 
 
 #Calcula segun el jugador usando move
